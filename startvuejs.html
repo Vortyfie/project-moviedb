@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DEV'INFLUENCE</title>
+</head>
+<body>
+    <div id="app">
+        <movie-list></movie-list>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        // Definition de composant movie-list
+        Vue.component('movie-list', {
+            template: `
+                <div>
+                    <h1>Les films du moment</h1>
+                    <div class="row">
+                        <div v-for="movie in movies" class="col-md-4" @click="showDetails(movie.id)">
+                            <img :src="'https://image.tmdb.org/t/p/w500/' + movie.poster_path" :alt="movie.title">
+                            <p>{{ movie.title }}</p>
+                        </div>
+                    </div>
+                    <movie-details v-if="showModal" @close="showModal = false" :movie="selectedMovie"></movie-details>
+                </div>
+            `,
+            data() {
+                return {
+                    movies: [],
+                    selectedMovie: {},
+                    showModal: false
+                }
+            },
+            // recuperation des films en cours de diffusion
+            created() {
+                axios.get('https://api.themoviedb.org/3/movie/now_playing', {
+                    params: {
+                        api_key: '896ad225e0620654ed8044bc37bb6e08'
+                    }
+                })
+                .then(response => {
+                    this.movies = response.data.results
+                })
+            },
+            methods: {
+                // recuperation des details d'un film
+                showDetails(movieId) {
+                    axios.get(`https://api.themoviedb.org/3/movie/${movieId}`, {
+                        params: {
+                            api_key: '896ad225e0620654ed8044bc37bb6e08'
+                        }
+                    })
+                    .then(response => {
+                        this.selectedMovie = response.data
+                        this.showModal = true
+                    })
+                }
+            }
+        });
+        // Definition de composant movie-details
+        Vue.component('movie-details', {
+            props: ['movie'],
+            template: `
+                <div class="modal">
+                    <h2>{{ movie.title }}</h2>
+                    <p>{{ movie.description }}</p>
+                    <p>Date de sortie : {{ movie.release_date }}</p>
+                    <p>Score : {{ movie.vote_average }}</p>
+                    <button @click="$emit('close')">Fermer</button>
+                </div>
+            `
+        });
+        // initialisation de l'application
+        new Vue({
+            el: '#app'
+        });
+    </script>
+</body
